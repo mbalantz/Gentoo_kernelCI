@@ -19,7 +19,6 @@ d.close()
 
 # filter for Manifest files
 packages = [v for v in packages if "Manifest" not in v]
-gentoo_repo = '../../gentoo-repo/'
 
 # remove any existing script
 if os.path.isfile('ebuild_unmerge.sh'):
@@ -34,7 +33,8 @@ with open('ebuild_unmerge.sh', 'w') as ebuild_unmerge:
 # 1) build the ebuild script
 ebuild_unmerge = open("ebuild_unmerge.sh", 'a')
 for package in packages:
-    ebuild_location = gentoo_repo + package
+    ebuild_location = "gentoo/" + package
+    print ("Checking for: {0}".format(ebuild_location))
     if not os.path.exists(ebuild_location):
         print("Skipping: {0}".format(package))
         continue
@@ -42,7 +42,7 @@ for package in packages:
     ebuild_full = "ROOT=kernel_sources /usr/bin/ebuild " + ebuild_location
     ebuild_cmd = ebuild_full + ' unmerge clean'
     print("  {0}".format(ebuild_cmd))
-    ebuild_unmerge.write(ebuild_cmd)
+    ebuild_unmerge.write(ebuild_cmd + "\n")
 ebuild_unmerge.close()
 
 # 2) make script executable

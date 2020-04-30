@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eu
 
 # Usage info
 show_help() {
@@ -28,7 +29,7 @@ while getopts a:hvk: opt; do
     case $opt in
         a)
             kernel_arch=$OPTARG
-	    ;;
+            ;;
         h)
             show_help
             exit 0
@@ -51,9 +52,9 @@ if [ $kernel_arch = "arm" ]; then
 fi
 
 # End of file
-for i in ../linux-patches/*.patch; do 
+for i in ../linux-patches/*.patch; do
 	echo "${i}"
-	yes "" | patch -p1 --no-backup-if-mismatch -f -N -s -d linux-*/ < "${i}"; 
+	yes "" | patch -p1 --no-backup-if-mismatch -f -N -s -d linux-*/ < "${i}";
 done
 kernel_builddir="$(dirname $(realpath $0))/linux-${kernel_arch}-build"
 cd linux-*/ || exit 1
@@ -65,21 +66,21 @@ if [ ! -z "${kernel_version}" ]; then
 		echo "Using defconfig ${defconfig}"
 		make ARCH=${kernel_arch_target} O=${kernel_builddir} ${defconfig}
 	elif [ ! -f ~/kernel-config/config-"${version}" ]; then
-		echo "File not found!"
-		echo "searching configuration in /proc/config.gz"
-		if [ ! -f ~/kernel-config ]; then
+		echo "Kernel config-${version} not found!"
+		#echo "Trying configuration in /proc/config.gz.."
+		if [ ! -f ~/kernel-config ] && [ -r /proc/config.gz ]; then
 			echo "Using /proc/config.gz"
 			zcat /proc/config.gz > .config
 		else
-			echo "using defconfig"
+			echo "Using defconfig"
 			make ARCH=${kernel_arch_target} O=${kernel_builddir} defconfig
 		fi
 		make mrproper
 		yes "" | make ARCH=${kernel_arch_target} O=${kernel_builddir} defconfig
 	else
 		echo "Using ~/kernel-config/config-${version}"
-		cp ~/kernel-config/config-"${version}" .config
 		make mrproper
+		cp ~/kernel-config/config-"${version}" .config
 		yes "" | make ARCH=${kernel_arch_target} O=${kernel_builddir} oldconfig
 	fi
 fi
